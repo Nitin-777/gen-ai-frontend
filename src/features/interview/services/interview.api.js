@@ -8,7 +8,26 @@ const api= axios.create({
 })
 
 
-export const generateInterviewReport=async ({ jobDescription, selfDescription, resumeFile}) =>{\n       try{\n       const formData= new FormData()\n       formData.append("jobDescription", jobDescription)\n       formData.append("selfDescription", selfDescription)\n       formData.append("resume", resumeFile)\n\n       const response= await api.post("/api/interview", formData,{\n        headers:{\n            "Content-Type" : "multipart/form-data"\n        }\n       })\n\n       return response.data\n       }\n       catch(err){\n           console.error('Generate interview report error:', err.response?.status, err.message)\n           throw err\n       }\n}
+export const generateInterviewReport=async ({ jobDescription, selfDescription, resumeFile}) =>{
+       try{
+       const formData= new FormData()
+       formData.append("jobDescription", jobDescription)
+       formData.append("selfDescription", selfDescription)
+       formData.append("resume", resumeFile)
+
+       const response= await api.post("/api/interview", formData,{
+        headers:{
+            "Content-Type" : "multipart/form-data"
+        }
+       })
+
+       return response.data
+       }
+       catch(err){
+           console.error('Generate interview report error:', err.response?.status, err.message)
+           throw err
+       }
+}
 
 export const getInterviewReportById= async (interviewId) =>{
     try{
