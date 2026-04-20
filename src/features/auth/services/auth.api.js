@@ -4,24 +4,16 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const api = axios.create({
   baseURL: API_URL,
-});
-
-// 🔥 ADD THIS (IMPORTANT)
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
+  withCredentials: true // ✅ IMPORTANT (send cookies)
 });
 
 // 📝 REGISTER
 export async function register({ username, email, password }) {
   try {
     const response = await api.post('/api/auth/register', {
-      username, email, password
+      username,
+      email,
+      password
     });
     return response.data;
   } catch (err) {
@@ -34,7 +26,8 @@ export async function register({ username, email, password }) {
 export async function login({ email, password }) {
   try {
     const response = await api.post('/api/auth/login', {
-      email, password
+      email,
+      password
     });
     return response.data;
   } catch (err) {
@@ -49,6 +42,7 @@ export async function logout() {
     const response = await api.post('/api/auth/logout');
     return response.data;
   } catch (err) {
+    console.error("Logout error:", err.response?.data);
     return null;
   }
 }
