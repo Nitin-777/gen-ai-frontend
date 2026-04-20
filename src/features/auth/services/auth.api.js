@@ -24,13 +24,11 @@ export async function login({email , password}){
     try{
     const response= await api.post('/api/auth/login', {
        email,password
-
     })
-
     return response.data;
-}
-
+    }
     catch(err){
+        console.error('Login API error:', err.response?.status, err.message)
         return null
     }
 }
@@ -52,6 +50,7 @@ export async function getMe(){
            return response.data;
     }
     catch(err){
+        console.error('GetMe API error:', err.response?.status, err.message)
         return null;
     }
 }

@@ -17,9 +17,11 @@ export const useAuth = () => {
             setUser(data.user)
             return true
         }
+        console.error('Login failed: Invalid response', data)
         return false
         }
         catch(err){
+            console.error('Login error:', err)
             return false
         }
         finally{
@@ -70,16 +72,17 @@ export const useAuth = () => {
         const data= await getMe()
         if(data && data.user){
             setUser(data.user)
+        } else {
+            console.warn('No user data returned from getMe')
         }
         }
         catch(err){
+            console.error('Failed to fetch user:', err)
         } finally{
         setLoading(false)
         }
     }
         getAndSetUser()
 
- },[])
-
-    return ({user,loading,handleLogin, handleRegister, handleLogout})
+ },[setUser, setLoading])
 }

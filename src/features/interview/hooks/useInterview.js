@@ -53,12 +53,14 @@ export const useInterview= () => {
         setReport(response.interviewReport)
     }
     catch(err){
-        console.log(err)
+        console.error('Failed to get report by ID:', err)
+        const errorMsg = err.response?.data?.error || err.message || "Failed to load report";
+        alert("Error: " + errorMsg);
     } finally{
         setLoading(false)
     }
     
-    return response.interviewReport
+    return response?.interviewReport
 
    }
 
@@ -69,6 +71,9 @@ const getReports = async () => {
         setReports(response.interviewReports)
         return response.interviewReports
     } catch (err) {
+        console.error('Failed to get all reports:', err)
+        const errorMsg = err.response?.data?.error || err.message || "Failed to load reports";
+        console.error("Error: " + errorMsg);
         return []
     } finally {
         setLoading(false)
