@@ -1,88 +1,117 @@
 import { useContext, useEffect } from "react";
 import { login, register, logout, getMe } from "../services/auth.api";
 import { AuthContext } from "../auth.context";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 export const useAuth = () => {
-    const context= useContext(AuthContext)
-    const navigate = useNavigate()
+    const context = useContext(AuthContext);
+    const navigate = useNavigate();
 
-    const{user,setUser,loading,setLoading} = context
+    if (!context) {
+        throw new Error("useAuth must be used inside AuthProvider");
+    }
 
-    const handleLogin= async ({email, password}) => {
+    const { user, setUser, loading, setLoading } = context;
+
+    // ✅ LOGIN
+    const handleLogin = async ({ email, password }) => {
         setLoading(true);
-        try{
-        const data= await login({email,password})
-        if(data && data.user){
-            setUser(data.user)
-            return true
-        }
-        console.error('Login failed: Invalid response', data)
-        return false
-        }
-        catch(err){
-            console.error('Login error:', err)
-            return false
-        }
-        finally{
-        setLoading(false)
-        }
-    }
+        try {
+            const data = await login({ email, password });
 
-    const handleRegister= async({username,email,password}) => {
+            // 🔥 STORE TOKEN
+            if (data?.token) {
+                localStorage.setItem("token", data.token);
+            }
 
+            if (data?.user) {
+                setUser(data.user);
+                return true;
+            }
+
+            return false;
+        } catch (err) {
+            console.error("Login error:", err);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ✅ REGISTER
+    const handleRegister = async ({ username, email, password }) => {
         setLoading(true);
-        try{
-        const data= await register({username,email,password})
-        if(data && data.user){
-            return true
-        }
-        return false
-        }
-        catch(err){
-            return false
-        }finally{
-        setLoading(false);
-        }
-    }
+        try {
+            const data = await register({ username, email, password });
 
-    const handleLogout= async() => {
-       setLoading(true)
-       try{
-           const response = await logout()
-           if(response && response.message){
-               setUser(null)
-               navigate('/login')
-               return true
-           } else {
-               return false
-           }
-       } catch(err){
-           setUser(null) // Clear user even if API fails
-           navigate('/login')
-           return false
-       } finally{
-           setLoading(false)
-       }
-    }
+            if (data?.token) {
+                localStorage.setItem("token", data.token);
+            }
 
-    useEffect(()=>{
-    const getAndSetUser= async ()=> {
-        try{
-        const data= await getMe()
-        if(data && data.user){
-            setUser(data.user)
-        } else {
-            console.warn('No user data returned from getMe')
-        }
-        }
-        catch(err){
-            console.error('Failed to fetch user:', err)
-        } finally{
-        setLoading(false)
-        }
-    }
-        getAndSetUser()
+            if (data?.user) {
+                setUser(data.user);
+                return true;
+            }
 
- },[setUser, setLoading])
-}
+            return false;
+        } catch (err) {
+            console.error(err);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ✅ LOGOUT
+    const handleLogout = async () => {
+        setLoading(true);
+        try {
+            await logout();
+        } catch (err) {
+            console.error(err);
+        } finally {
+            localStorage.removeItem("token"); // 🔥 IMPORTANT
+            setUser(null);
+            navigate("/login");
+            setLoading(false);
+        }
+    };
+
+    // ✅ AUTO LOGIN
+    useEffect(() => {
+        const getAndSetUser = async () => {
+            try {
+                const token = localStorage.getItem("token");
+
+                if (!token) {
+                    setLoading(false);
+                    return;
+                }
+
+                const data = await getMe();
+
+                if (data?.user) {
+                    setUser(data.user);
+                } else {
+                    localStorage.removeItem("token");
+                }
+            } catch (err) {
+                console.error(err);
+                localStorage.removeItem("token");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        getAndSetUser();
+    }, [setUser, setLoading]);
+
+    // 🔥 THIS WAS MISSING
+    return {
+        user,
+        loading,
+        handleLogin,
+        handleRegister,
+        handleLogout
+    };
+};
